@@ -1,12 +1,18 @@
 syntax = "proto3";
+
+package com.amauryg13.ems.draws.v0;
+
+option go_package = "github.com/amauryg13/ems/draws/proto;proto";
+
 import "google/protobuf/timestamp.proto";
 
-package draws;
-
-option go_package = "./proto;proto";
-
-service Draws {
-	rpc Get(GetRequest) returns (GetResponse) {}
+service DrawsService {
+	rpc GetDraw(GetDrawRequest) returns (Draw) {
+		option (google.api.http) = {
+			post: "/api/v0/draws/draws-get",
+			body: "*"
+		};
+	}
 }
 
 message Draw {
@@ -21,10 +27,6 @@ message Draw {
 	google.protobuf.Timestamp forclusion = 5;
 }
 
-message GetRequest {
+message GetDrawRequest {
 	string uuid = 1;
-}
-
-message GetResponse {
-	Draw draw = 1;
 }
