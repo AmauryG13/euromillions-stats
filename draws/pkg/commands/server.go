@@ -4,9 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	grpc "github.com/amauryg13/ems/draws/pkg/server"
+	"github.com/amauryg13/ems/draws/pkg/service"
+	mgrpc "github.com/amauryg13/ems/pkg/services/grpc"
+
+	"github.com/amauryg13/ems/pkg/config"
+	"github.com/amauryg13/ems/pkg/log"
 	"github.com/oklog/run"
 	"github.com/urfave/cli/v2"
-	"go-micro.dev/v4/config"
 )
 
 func Server(cfg *config.Config) *cli.Command {
@@ -15,7 +20,11 @@ func Server(cfg *config.Config) *cli.Command {
 		Usage:    fmt.Sprintf("start %s server", "draws"),
 		Category: "server",
 		Action: func(c *cli.Context) error {
-			logger := logging.Configure(cfg.Service.Name, cfg.Log)
+			logger := log.NewLogger(
+				log.Name(cfg.Service.Name),
+				log.Level(cfg.Log.Level),
+				log.File(cfg.Log.File),
+			)
 
 			gr := run.Group{}
 			ctx, cancel := defineContext(cfg)
@@ -23,9 +32,10 @@ func Server(cfg *config.Config) *cli.Command {
 			defer cancel()
 
 			grpcServer := grpc.Server(
-				grpc.Name(cfg.Service.Name),
-				grpc.Config(cfg),
-				grpc.Context(ctx),
+				mgrpc.Name(cfg.Service.Name),
+				mgrpc.Config(cfg),
+				mgrpc.Context(ctx),
+				mgrpc.Handler(service.Service),
 			)
 
 			gr.Add(grpcServer.Run, func(_ error) {
