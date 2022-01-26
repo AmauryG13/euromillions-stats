@@ -2,9 +2,9 @@ package grpc
 
 import (
 	"context"
-	"log"
 
-	"github.com/amauryg13/ems/pkg/config"
+	"github.com/amauryg13/ems/pkg/log"
+
 	"github.com/urfave/cli/v2"
 )
 
@@ -18,15 +18,13 @@ type Options struct {
 	//
 	Address string
 	//
-	Config  *config.Config
 	Context context.Context
 	Logger  log.Logger
 	//
-	Flags   []cli.Flag
-	Handler Service
+	Flags []cli.Flag
 }
 
-func NewOptions(opts ...Option) Options {
+func newOptions(opts ...Option) Options {
 	opt := Options{
 		Namespace: "go.ems.api",
 	}
@@ -70,13 +68,6 @@ func Version(v string) Option {
 func Address(a string) Option {
 	return func(o *Options) {
 		o.Address = a
-	}
-}
-
-// Config provides a function to set the config option.
-func Config(val *config.Config) Option {
-	return func(o *Options) {
-		o.Config = val
 	}
 }
 
