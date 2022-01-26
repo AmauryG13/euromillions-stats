@@ -6,7 +6,6 @@ import (
 
 	grpc "github.com/amauryg13/ems/draws/pkg/server"
 	"github.com/amauryg13/ems/draws/pkg/service"
-	mgrpc "github.com/amauryg13/ems/pkg/services/grpc"
 
 	"github.com/amauryg13/ems/pkg/config"
 	"github.com/amauryg13/ems/pkg/log"
@@ -18,7 +17,7 @@ func Server(cfg *config.Config) *cli.Command {
 	return &cli.Command{
 		Name:     "server",
 		Usage:    fmt.Sprintf("start %s server", "draws"),
-		Category: "server",
+		Category: "draws",
 		Action: func(c *cli.Context) error {
 			logger := log.NewLogger(
 				log.Name(cfg.Service.Name),
@@ -31,11 +30,19 @@ func Server(cfg *config.Config) *cli.Command {
 
 			defer cancel()
 
+			handler, err := service.New(
+				service.Logger(logger),
+				service.Config(cfg),
+			)
+			if err != nil {
+				logger.Error().Err(err).Msg("handler init")
+			}
+
 			grpcServer := grpc.Server(
-				mgrpc.Name(cfg.Service.Name),
-				mgrpc.Config(cfg),
-				mgrpc.Context(ctx),
-				mgrpc.Handler(service.Service),
+				grpc.Name(cfg.Service.Name),
+				grpc.Config(cfg),
+				grpc.Context(ctx),
+				grpc.Handler(handler),
 			)
 
 			gr.Add(grpcServer.Run, func(_ error) {
