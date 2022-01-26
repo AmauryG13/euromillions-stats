@@ -2,17 +2,12 @@ syntax = "proto3";
 
 package com.amauryg13.ems.draws.v0;
 
-option go_package = "github.com/amauryg13/ems/draws/proto;proto";
+option go_package = "./;proto";
 
 import "google/protobuf/timestamp.proto";
 
 service DrawsService {
-	rpc GetDraw(GetDrawRequest) returns (Draw) {
-		option (google.api.http) = {
-			post: "/api/v0/draws/draws-get",
-			body: "*"
-		};
-	}
+	rpc GetDraw(GetDrawRequest) returns (Draw) {}
 }
 
 message Draw {

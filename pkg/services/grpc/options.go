@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/amauryg13/ems/pkg/config"
 	"github.com/urfave/cli/v2"
 )
 
@@ -17,15 +18,17 @@ type Options struct {
 	//
 	Address string
 	//
+	Config  *config.Config
 	Context context.Context
 	Logger  log.Logger
 	//
-	Flags []cli.Flag
+	Flags   []cli.Flag
+	Handler Service
 }
 
-func newOptions(opts ...Option) Options {
+func NewOptions(opts ...Option) Options {
 	opt := Options{
-		Namespace: "ems.api",
+		Namespace: "go.ems.api",
 	}
 
 	for _, o := range opts {
@@ -67,6 +70,13 @@ func Version(v string) Option {
 func Address(a string) Option {
 	return func(o *Options) {
 		o.Address = a
+	}
+}
+
+// Config provides a function to set the config option.
+func Config(val *config.Config) Option {
+	return func(o *Options) {
+		o.Config = val
 	}
 }
 

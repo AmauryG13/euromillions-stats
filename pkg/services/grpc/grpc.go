@@ -13,7 +13,7 @@ type Service struct {
 }
 
 func NewService(opts ...Option) Service {
-	sopts := newOptions(opts...)
+	sopts := NewOptions(opts...)
 
 	mopts := []micro.Option{
 		micro.Server(gmrpcs.NewServer()),
