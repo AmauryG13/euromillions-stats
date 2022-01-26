@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package com.amauryg13.ems.draws.v0;
+
+option go_package = "./;proto";
+
+import "google/protobuf/timestamp.proto";
+
+service DrawsService {
+	rpc GetDraw(GetDrawRequest) returns (Draw) {}
+}
+
+message Draw {
+	int32 uuid = 1;
+	int32 number = 2;
+	enum Day {
+		THURSDAY = 0;
+		FRIDAY = 1;
+	}
+	Day day = 3;
+	int32 cycle = 4;
+	google.protobuf.Timestamp forclusion = 5;
+}
+
+message GetDrawRequest {
+	string uuid = 1;
+}

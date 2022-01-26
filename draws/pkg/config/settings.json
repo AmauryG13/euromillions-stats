@@ -1,0 +1,9 @@
+{
+    "service": {
+        "name": "draws"
+    },
+    "GRPC": {
+        "Namespace": "fr.amauryg13.ems",
+        "Address": "127.0.0.1:9010"
+    }
+}
