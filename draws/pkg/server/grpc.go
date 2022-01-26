@@ -5,8 +5,8 @@ import (
 	"github.com/amauryg13/ems/pkg/services/grpc"
 )
 
-func Server(opts ...grpc.Option) grpc.Service {
-	options := grpc.NewOptions(opts...)
+func Server(opts ...Option) grpc.Service {
+	options := newOptions(opts...)
 
 	service := grpc.NewService(
 		grpc.Name(options.Config.Service.Name),
