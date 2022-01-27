@@ -17,7 +17,6 @@ func DefaultConfig() *config.Config {
 		},
 		Log: &config.Log{
 			Level: "info",
-			File:  "./draws.log",
 		},
 	}
 }
