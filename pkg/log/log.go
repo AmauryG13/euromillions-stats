@@ -1,46 +1,34 @@
 package log
 
 import (
-	"fmt"
-	"os"
 	"strings"
 
-	"github.com/rs/zerolog"
+	"go-micro.dev/v4/logger"
 )
 
 type Logger struct {
-	zerolog.Logger
+	*logger.Helper
 }
 
 func NewLogger(opts ...Option) Logger {
 	options := newOptions(opts...)
 
+	var lvl logger.Level
+
 	switch strings.ToLower(options.Level) {
 	case "debug":
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		lvl = logger.DebugLevel
 	default:
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		lvl = logger.InfoLevel
 	}
 
-	var logger zerolog.Logger
+	gmlogger := logger.NewLogger(
+		logger.WithLevel(lvl),
+	)
 
-	if options.File != "" {
-		f, err := os.OpenFile(options.File, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-		if err != nil {
-			print(fmt.Sprintf("file could not be opened for writing: %s. error: %v", options.File, err))
-			os.Exit(1)
-		}
-		logger = logger.Output(f)
-	} else {
-		logger = zerolog.New(os.Stderr)
-	}
-
-	logger = logger.With().
-		Str("service", options.Name).
-		Timestamp().
-		Logger()
+	gmhelper := logger.NewHelper(gmlogger)
 
 	return Logger{
-		logger,
+		gmhelper,
 	}
 }

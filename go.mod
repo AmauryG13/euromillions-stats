@@ -6,7 +6,6 @@ require (
 	github.com/asim/go-micro/plugins/client/grpc/v4 v4.0.0-20220118152736-9e0be6c85d75
 	github.com/asim/go-micro/plugins/server/grpc/v4 v4.0.0-20220118152736-9e0be6c85d75
 	github.com/oklog/run v1.1.0
-	github.com/rs/zerolog v1.26.1
 	github.com/urfave/cli/v2 v2.3.0
 	go-micro.dev/v4 v4.5.0
 	google.golang.org/protobuf v1.27.1
