@@ -15,6 +15,7 @@ type Config struct {
 
 	Service *Service
 	GRPC    *GRPC
+	Store   *Store
 }
 
 func (c Config) Read(path string) *Config {
