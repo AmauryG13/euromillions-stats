@@ -13,8 +13,8 @@ type Options struct {
 	Nodes []string
 	// Database allows multiple isolated stores to be kept in one backend, if supported.
 	Database string
-	// Table is analagous to a table in database backends or a key prefix in KV backends
-	Table string
+	// Collection is analagous to a table in database backends or a key prefix in KV backends
+	Collection string
 	// Context should contain all implementation specific options, using context.WithValue.
 	Context context.Context
 }
@@ -39,9 +39,9 @@ func Database(db string) Option {
 }
 
 // Table is analagous to a table in database backends or a key prefix in KV backends
-func Table(t string) Option {
+func Collection(t string) Option {
 	return func(o *Options) {
-		o.Table = t
+		o.Collection = t
 	}
 }
 
@@ -54,11 +54,7 @@ func WithContext(c context.Context) Option {
 
 // ReadOptions configures an individual Read operation
 type ReadOptions struct {
-	Database, Table string
-	// Prefix returns all records that are prefixed with key
-	Prefix bool
-	// Suffix returns all records that have the suffix key
-	Suffix bool
+	Database, Collection string
 	// Limit limits the number of returned records
 	Limit uint
 	// Offset when combined with Limit supports pagination
@@ -69,24 +65,10 @@ type ReadOptions struct {
 type ReadOption func(r *ReadOptions)
 
 // ReadFrom the database and table
-func ReadFrom(database, table string) ReadOption {
+func ReadFrom(database, collection string) ReadOption {
 	return func(r *ReadOptions) {
 		r.Database = database
-		r.Table = table
-	}
-}
-
-// ReadPrefix returns all records that are prefixed with key
-func ReadPrefix() ReadOption {
-	return func(r *ReadOptions) {
-		r.Prefix = true
-	}
-}
-
-// ReadSuffix returns all records that have the suffix key
-func ReadSuffix() ReadOption {
-	return func(r *ReadOptions) {
-		r.Suffix = true
+		r.Collection = collection
 	}
 }
 
@@ -107,7 +89,7 @@ func ReadOffset(o uint) ReadOption {
 // WriteOptions configures an individual Write operation
 // If Expiry and TTL are set TTL takes precedence
 type WriteOptions struct {
-	Database, Table string
+	Database, Collection string
 	// Expiry is the time the record expires
 	Expiry time.Time
 	// TTL is the time until the record expires
@@ -121,7 +103,7 @@ type WriteOption func(w *WriteOptions)
 func WriteTo(database, table string) WriteOption {
 	return func(w *WriteOptions) {
 		w.Database = database
-		w.Table = table
+		w.Collection = table
 	}
 }
 
@@ -141,69 +123,16 @@ func WriteTTL(d time.Duration) WriteOption {
 
 // DeleteOptions configures an individual Delete operation
 type DeleteOptions struct {
-	Database, Table string
+	Database, Collection string
 }
 
 // DeleteOption sets values in DeleteOptions
 type DeleteOption func(d *DeleteOptions)
 
 // DeleteFrom the database and table
-func DeleteFrom(database, table string) DeleteOption {
+func DeleteFrom(database, collection string) DeleteOption {
 	return func(d *DeleteOptions) {
 		d.Database = database
-		d.Table = table
-	}
-}
-
-// ListOptions configures an individual List operation
-type ListOptions struct {
-	// List from the following
-	Database, Table string
-	// Prefix returns all keys that are prefixed with key
-	Prefix string
-	// Suffix returns all keys that end with key
-	Suffix string
-	// Limit limits the number of returned keys
-	Limit uint
-	// Offset when combined with Limit supports pagination
-	Offset uint
-}
-
-// ListOption sets values in ListOptions
-type ListOption func(l *ListOptions)
-
-// ListFrom the database and table
-func ListFrom(database, table string) ListOption {
-	return func(l *ListOptions) {
-		l.Database = database
-		l.Table = table
-	}
-}
-
-// ListPrefix returns all keys that are prefixed with key
-func ListPrefix(p string) ListOption {
-	return func(l *ListOptions) {
-		l.Prefix = p
-	}
-}
-
-// ListSuffix returns all keys that end with key
-func ListSuffix(s string) ListOption {
-	return func(l *ListOptions) {
-		l.Suffix = s
-	}
-}
-
-// ListLimit limits the number of returned keys to l
-func ListLimit(l uint) ListOption {
-	return func(lo *ListOptions) {
-		lo.Limit = l
-	}
-}
-
-// ListOffset starts returning responses from o. Use in conjunction with Limit for pagination.
-func ListOffset(o uint) ListOption {
-	return func(l *ListOptions) {
-		l.Offset = o
+		d.Collection = collection
 	}
 }

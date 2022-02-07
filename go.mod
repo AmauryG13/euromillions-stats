@@ -6,7 +6,6 @@ require (
 	github.com/asim/go-micro/plugins/client/grpc/v4 v4.0.0-20220118152736-9e0be6c85d75
 	github.com/asim/go-micro/plugins/server/grpc/v4 v4.0.0-20220118152736-9e0be6c85d75
 	github.com/oklog/run v1.1.0
-	github.com/pkg/errors v0.9.1
 	github.com/urfave/cli/v2 v2.3.0
 	go-micro.dev/v4 v4.5.0
 	go.mongodb.org/mongo-driver v1.8.3
@@ -37,6 +36,7 @@ require (
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/xanzy/ssh-agent v0.3.1 // indirect
