@@ -1,52 +1,67 @@
 package store
 
 import (
-	"database/sql"
-	"time"
+	"context"
 
-	"github.com/pkg/errors"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/store"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var ()
-
-type mongoStore struct {
-	options Options
-
-	client     *mongo.Client
-	collection *mongo.Collection
+type MongoStore struct {
+	options store.Options
+	client  *mongo.Client
 }
 
-func (m *mongoStore) configure() error {
-	ctx := m.options.Context
-
-	if len(m.options.Nodes) == 0 {
-		logger.Errorf("[store] No node supplied")
+func (m *MongoStore) Init(opts ...store.Option) error {
+	for _, o := range opts {
+		o(&m.options)
 	}
+	return m.configure()
+}
 
-	uri := m.options.Nodes[0]
+func (m *MongoStore) Options() store.Options {
+	return m.options
+}
 
-	if len(m.options.Nodes) > 1 {
-		logger.Warnf("[store] Multiple nodes (%d) supplied", len(m.options.Nodes))
-	}
+func (m *MongoStore) Close() error {
+	err := m.client.Disconnect(context.TODO())
 
-	mongoOptions := options.Client()
-	mongoOptions.ApplyURI(uri)
-
-	client, err := mongo.Connect(ctx, mongoOptions)
 	if err != nil {
-		logger.Errorf("[store] Cannot connect to the node %s", uri)
+		logger.Errorf("%s [store] Error during connection closing")
 	}
 
-	m.client = client
+	return err
+}
 
-	if m.options.Database != "" && m.options.Table != "" {
-		collection := client.Database(m.options.Database).Collection(m.options.Table)
-		m.collection = collection
-	}
+func (m *MongoStore) Read(key string, doc interface{}, opts ...store.ReadOption) ([]*store.Record, error) {
+	db := opts.Database
+	table := opts.
+
+
+	collection := m.getCollection()
+
+}
+
+func (m *MongoStore) Delete(key string, opts ...store.DeleteOption) error {
+
+}
+
+func (m *MongoStore) Write(record *store.Record, opts ...store.WriteOption) error {
+
+}
+
+func (m *MongoStore) List(opts ...store.ListOption) ([]string, error) {
+
+}
+
+func (m *MongoStore) String() string {
+	return "mongo"
+}
+
+func NewStore(opts ...store.Option) store.Store {
+	var options store.Options
 
 	return err
 }
