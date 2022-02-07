@@ -16,7 +16,7 @@ import (
 func Server(cfg *config.Config) *cli.Command {
 	return &cli.Command{
 		Name:     "server",
-		Usage:    fmt.Sprintf("start %s server", "draws"),
+		Usage:    fmt.Sprintf("start %s server", cfg.Service.Name),
 		Category: "draws",
 		Action: func(c *cli.Context) error {
 			logger := log.NewLogger(
@@ -24,6 +24,8 @@ func Server(cfg *config.Config) *cli.Command {
 				log.Level(cfg.Log.Level),
 				log.File(cfg.Log.File),
 			)
+
+			logger.Infof("Starting [command] %s %s", cfg.Service.Name, c.Command.Name)
 
 			gr := run.Group{}
 			ctx, cancel := defineContext(cfg)
@@ -35,7 +37,7 @@ func Server(cfg *config.Config) *cli.Command {
 				service.Config(cfg),
 			)
 			if err != nil {
-				logger.Error().Err(err).Msg("handler init")
+				logger.Fatal("Handler intialisation failed")
 			}
 
 			grpcServer := grpc.Server(
@@ -46,7 +48,7 @@ func Server(cfg *config.Config) *cli.Command {
 			)
 
 			gr.Add(grpcServer.Run, func(_ error) {
-				logger.Info().Str("server", "grpc").Msg("shutting down server")
+				logger.Infof("Command [%s] Shutting down server")
 				cancel()
 			})
 

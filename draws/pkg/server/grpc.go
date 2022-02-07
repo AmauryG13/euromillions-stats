@@ -7,18 +7,20 @@ import (
 
 func Server(opts ...Option) grpc.Service {
 	options := newOptions(opts...)
+	logger := options.Logger
+	handler := options.Handler
 
 	service := grpc.NewService(
 		grpc.Name(options.Config.Service.Name),
 		grpc.Context(options.Context),
 		grpc.Address(options.Config.GRPC.Address),
 		grpc.Namespace(options.Config.GRPC.Namespace),
-		grpc.Logger(options.Logger),
+		grpc.Logger(logger),
 		grpc.Flags(options.Flags...),
 	)
 
-	if err := proto.RegisterDrawsServiceHandler(service.Server(), options.Handler); err != nil {
-		options.Logger.Fatal().Err(err).Msg("could not register service handler")
+	if err := proto.RegisterDrawsServiceHandler(service.Server(), handler); err != nil {
+		logger.Fatal("Service handler registration failed")
 	}
 
 	return service

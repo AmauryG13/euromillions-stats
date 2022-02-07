@@ -1,13 +1,13 @@
 package config
 
-type NodeOptions struct {
+type StoreNode struct {
 	Username string
 	Password string
 	Port     string
 }
 
 type Store struct {
-	Nodes    []NodeOptions
+	Nodes    []StoreNode
 	Database string
 	Table    string
 }
