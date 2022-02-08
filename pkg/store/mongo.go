@@ -1,26 +1,103 @@
 package store
 
 import (
-	"database/sql"
-	"time"
-
-	"github.com/pkg/errors"
+	"github.com/amauryg13/ems/pkg/store/nosql"
 	"go-micro.dev/v4/logger"
-	"go-micro.dev/v4/store"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var ()
-
-type mongoStore struct {
-	options Options
+type MongoStore struct {
+	options nosql.Options
 
 	client     *mongo.Client
+	db         *mongo.Database
 	collection *mongo.Collection
 }
 
-func (m *mongoStore) configure() error {
+func (m *MongoStore) Init(opts ...nosql.Option) error {
+	for _, o := range opts {
+		o(&m.options)
+	}
+	// reconfigure
+	return m.configure()
+}
+
+func (m *MongoStore) Close() error {
+	err := m.client.Disconnect(m.options.Context)
+
+	if err != nil {
+		logger.Warnf("[store] Error closing mongo connection")
+	}
+
+	return err
+}
+
+func (m *MongoStore) Options() nosql.Options {
+	return m.options
+}
+
+func (m *MongoStore) String() string {
+	return "mongo"
+}
+
+func (m *MongoStore) Create(r []*nosql.Record, opts ...nosql.WriteOption) error {
+	var options nosql.WriteOptions
+	for _, o := range opts {
+		o(&options)
+	}
+
+	ctx := m.options.Context
+	collection := m.setup(options.Database, options.Collection)
+
+	Records, isMany := m.prepare(r)
+
+	var err error
+
+	if isMany {
+		_, err = collection.InsertMany(ctx, Records)
+	} else {
+		_, err = collection.InsertOne(ctx, Records[0])
+	}
+
+	return err
+}
+
+func (m *MongoStore) Read(r []*nosql.Record, opts ...nosql.ReadOption) ([]*nosql.Record, error) {
+	records := make([]*nosql.Record, 1)
+	return records, nil
+}
+
+func (m *MongoStore) Update(r []*nosql.Record, opts ...nosql.WriteOption) error {
+	return nil
+}
+
+func (m *MongoStore) Delete(r []*nosql.Record, opts ...nosql.DeleteOption) error {
+	return nil
+}
+
+// NewStore returns a new Store backed by Mongo
+func NewStore(opts ...nosql.Option) nosql.Store {
+	options := nosql.Options{}
+
+	for _, o := range opts {
+		o(&options)
+	}
+
+	// new store
+	s := new(MongoStore)
+	// set the options
+	s.options = options
+	// best-effort configure the store
+	if err := s.configure(); err != nil {
+		logger.Error("Error configuring store ", err)
+	}
+
+	// return store
+	return s
+}
+
+func (m *MongoStore) configure() error {
 	ctx := m.options.Context
 
 	if len(m.options.Nodes) == 0 {
@@ -43,95 +120,45 @@ func (m *mongoStore) configure() error {
 
 	m.client = client
 
-	if m.options.Database != "" && m.options.Table != "" {
-		collection := client.Database(m.options.Database).Collection(m.options.Table)
-		m.collection = collection
+	if m.options.Database != "" {
+		m.db = client.Database(m.options.Database)
+	}
+
+	if m.options.Collection != "" {
+		m.collection = m.db.Collection(m.options.Collection)
 	}
 
 	return err
 }
 
-func (m *mongoStore) Close() error {
-	return m.client.Disconnect(m.options.Context)
-}
+func (m *MongoStore) setup(database string, collection string) *mongo.Collection {
+	var db *mongo.Database
+	var coll *mongo.Collection
 
-func (m *mongoStore) Init(opts ...store.Option) error {
-	for _, o := range opts {
-		o(&m.options)
-	}
-	// reconfigure
-	return m.configure()
-}
-
-// List all the known records
-func (m *mongoStore) List(opts ...store.ListOption) ([]string, error) {
-	var options store.ListOptions
-	for _, o := range opts {
-		o(&options)
+	if db = m.db; database != "" {
+		db = m.client.Database(database)
 	}
 
-
-	return []string, nil
-}
-
-// Read a single key
-func (m *mongoStore) Read(key string, opts ...store.ReadOption) ([]*store.Record, error) {
-	var options store.ReadOptions
-	for _, o := range opts {
-		o(&options)
+	if coll = m.collection; collection != "" {
+		coll = db.Collection(collection)
 	}
 
-	return []*store.Record, nil
+	return coll
 }
 
-// Write records
-func (m *mongoStore) Write(r *store.Record, opts ...store.WriteOption) error {
-	var options store.WriteOptions
-	for _, o := range opts {
-		o(&options)
+func (m *MongoStore) prepare(records []*nosql.Record) ([]interface{}, bool) {
+	var isMany bool
+
+	if isMany = false; len(records) > 1 {
+		isMany = true
 	}
 
-	return nil
-}
+	Records := make([]interface{}, len(records))
 
-// Delete records with keys
-func (m *mongoStore) Delete(key string, opts ...store.DeleteOption) error {
-	var options store.DeleteOptions
-	for _, o := range opts {
-		o(&options)
+	for idx, record := range records {
+		Records[idx] = record.Value
 	}
 
-	return nil
-}
+	return Records, isMany
 
-func (m *mongoStore) Options() store.Options {
-	return s.options
-}
-
-func (m *mongoStore) String() string {
-	return "mongo"
-}
-
-// NewStore returns a new micro Store backed by sql
-func NewStore(opts ...store.Option) store.Store {
-	options := store.Options{
-		Database: DefaultDatabase,
-		Table:    DefaultTable,
-	}
-
-	for _, o := range opts {
-		o(&options)
-	}
-
-	// new store
-	s := new(mongoStore)
-	// set the options
-	s.options = options
-	// best-effort configure the store
-	if err := s.configure(); err != nil {
-		logger.Error("Error configuring store ", err)
-	}
-
-	// return store
-	return s
 }
