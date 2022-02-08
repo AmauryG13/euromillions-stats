@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"go-micro.dev/v4/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -115,19 +116,86 @@ func (m *MongoStore) Read(q *Query, opts ...QueryOption) ([]*Record, error) {
 		o(&options)
 	}
 
+	var records []*Record
+	var err error
+
 	if options.Limit == 1 {
-
+		records, err = m.findOne(q, options)
 	} else {
-
+		records, err = m.find(q, options)
 	}
-	return queries, nil
+	return records, err
 }
 
 func (m *MongoStore) findOne(q *Query, opts QueryOptions) ([]*Record, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
 
+	options := options.FindOne()
+
+	if len(opts.Fields) != 0 {
+		options.SetProjection(opts.Fields)
+	}
+
+	var result []byte
+	err := collection.FindOne(ctx, q.Filter, options).Decode(&result)
+
+	if err != nil {
+		logger.Errorf("[store] Error findOne (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+	}
+
+	records := make([]*Record, 1)
+	records[0] = &Record{
+		Value: result,
+	}
+
+	return records, err
 }
 
 func (m *MongoStore) find(q *Query, opts QueryOptions) ([]*Record, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	options := options.Find()
+
+	options.SetLimit(opts.Limit)
+	options.SetSkip(opts.Offset)
+
+	if len(opts.Fields) != 0 {
+		options.SetProjection(opts.Fields)
+	}
+
+	if len(opts.Sort) != 0 {
+		options.SetSort(opts.Sort)
+	}
+
+	cursor, err := collection.Find(ctx, q.Filter, options)
+
+	if err != nil {
+		logger.Errorf("[store] Error getting cursor (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+	}
+
+	var records []*Record
+
+	for cursor.Next(ctx) {
+		var result []byte
+
+		if err := cursor.Decode(&result); err != nil {
+			logger.Errorf("[store] Error decoding cursor (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+		}
+
+		records = append(records, &Record{
+			Value: result,
+		})
+	}
+
+	if err := cursor.Err(); err != nil {
+		logger.Errorf("[store] Error parsing cursor (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+	}
+
+	cursor.Close(ctx)
+
+	return records, err
 
 }
 
@@ -137,16 +205,58 @@ func (m *MongoStore) Update(q []*Query, opts ...QueryOption) ([]*Record, error) 
 		o(&options)
 	}
 
-	return nil
+	var records []*Record
+	var err error
+
+	return records, err
 }
 
-func (m *MongoStore) Delete(q []*Query, opts ...QueryOption) ([]*Record, error) {
+func (m *MongoStore) Delete(q *Query, opts ...QueryOption) (int64, error) {
 	var options QueryOptions
 	for _, o := range opts {
 		o(&options)
 	}
 
-	return nil
+	var count int64
+	var err error
+
+	if len(q.Doc) > 0 && len(q.Filter) == 0 {
+		count, err = m.deleteOne(q, options)
+	} else if len(q.Filter) > 0 {
+		count, err = m.deleteMany(q, options)
+	}
+
+	return count, err
+}
+
+func (m *MongoStore) deleteOne(q *Query, opts QueryOptions) (int64, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	options := options.Delete().SetHint(bson.D{{"_id", 1}})
+
+	result, err := collection.DeleteOne(ctx, q.Doc, options)
+
+	if err != nil {
+		logger.Errorf("[store] Error deleteOne (db : %s, collection : %s) doc : %s", opts.Database, opts.Collection, q.Doc)
+	}
+
+	return result.DeletedCount, err
+}
+
+func (m *MongoStore) deleteMany(q *Query, opts QueryOptions) (int64, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	options := options.Delete().SetHint(bson.D{{"_id", 1}})
+
+	results, err := collection.DeleteMany(ctx, q.Filter, options)
+
+	if err != nil {
+		logger.Errorf("[store] Error deleteMany (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+	}
+
+	return results.DeletedCount, err
 }
 
 // New returns a new store backed by MongoStore
