@@ -1,21 +1,22 @@
 package store
 
 import (
-	"github.com/amauryg13/ems/pkg/store/nosql"
+	"fmt"
+
 	"go-micro.dev/v4/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type MongoStore struct {
-	options nosql.Options
+	options Options
 
 	client     *mongo.Client
 	db         *mongo.Database
 	collection *mongo.Collection
 }
 
-func (m *MongoStore) Init(opts ...nosql.Option) error {
+func (m *MongoStore) Init(opts ...Option) error {
 	for _, o := range opts {
 		o(&m.options)
 	}
@@ -27,13 +28,13 @@ func (m *MongoStore) Close() error {
 	err := m.client.Disconnect(m.options.Context)
 
 	if err != nil {
-		logger.Warnf("[store] Error closing mongo connection")
+		logger.Warnf("[] Error closing mongo connection")
 	}
 
 	return err
 }
 
-func (m *MongoStore) Options() nosql.Options {
+func (m *MongoStore) Options() Options {
 	return m.options
 }
 
@@ -41,59 +42,131 @@ func (m *MongoStore) String() string {
 	return "mongo"
 }
 
-func (m *MongoStore) Create(r []*nosql.Record, opts ...nosql.WriteOption) error {
-	var options nosql.WriteOptions
+func (m *MongoStore) Create(q []*Query, opts ...QueryOption) ([]*Record, error) {
+	var options QueryOptions
 	for _, o := range opts {
 		o(&options)
 	}
 
-	ctx := m.options.Context
-	collection := m.setup(options.Database, options.Collection)
+	isMany := false
 
-	Records, isMany := m.prepare(r)
+	if len(q) > 1 {
+		isMany = true
+	}
 
+	var records []*Record
 	var err error
 
 	if isMany {
-		_, err = collection.InsertMany(ctx, Records)
+		records, err = m.insertMany(q, options)
 	} else {
-		_, err = collection.InsertOne(ctx, Records[0])
+		records, err = m.insertOne(q[0], options)
 	}
 
-	return err
+	return records, err
 }
 
-func (m *MongoStore) Read(r []*nosql.Record, opts ...nosql.ReadOption) ([]*nosql.Record, error) {
-	records := make([]*nosql.Record, 1)
-	return records, nil
+func (m *MongoStore) insertOne(q *Query, opts QueryOptions) ([]*Record, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	result, err := collection.InsertOne(ctx, q.Doc)
+
+	if err != nil {
+		logger.Errorf("[store] Error insertOne (db : %s, collection : %s) doc : %s", opts.Database, opts.Collection, q.Doc)
+	}
+
+	records := make([]*Record, 1)
+	records[0] = &Record{
+		Key: fmt.Sprint(result.InsertedID),
+	}
+
+	return records, err
 }
 
-func (m *MongoStore) Update(r []*nosql.Record, opts ...nosql.WriteOption) error {
+func (m *MongoStore) insertMany(q []*Query, opts QueryOptions) ([]*Record, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	docs := make([]interface{}, len(q))
+	for idx, query := range q {
+		docs[idx] = query.Doc
+	}
+
+	results, err := collection.InsertMany(ctx, docs)
+
+	if err != nil {
+		logger.Errorf("[store] Error insertMany (db : %s, collection : %s)", opts.Database, opts.Collection)
+	}
+
+	records := make([]*Record, len(q))
+	for idx, id := range results.InsertedIDs {
+		records[idx] = &Record{
+			Key: fmt.Sprint(id),
+		}
+	}
+
+	return records, err
+}
+
+func (m *MongoStore) Read(q *Query, opts ...QueryOption) ([]*Record, error) {
+	var options QueryOptions
+	for _, o := range opts {
+		o(&options)
+	}
+
+	if options.Limit == 1 {
+
+	} else {
+
+	}
+	return queries, nil
+}
+
+func (m *MongoStore) findOne(q *Query, opts QueryOptions) ([]*Record, error) {
+
+}
+
+func (m *MongoStore) find(q *Query, opts QueryOptions) ([]*Record, error) {
+
+}
+
+func (m *MongoStore) Update(q []*Query, opts ...QueryOption) ([]*Record, error) {
+	var options QueryOptions
+	for _, o := range opts {
+		o(&options)
+	}
+
 	return nil
 }
 
-func (m *MongoStore) Delete(r []*nosql.Record, opts ...nosql.DeleteOption) error {
+func (m *MongoStore) Delete(q []*Query, opts ...QueryOption) ([]*Record, error) {
+	var options QueryOptions
+	for _, o := range opts {
+		o(&options)
+	}
+
 	return nil
 }
 
-// NewStore returns a new Store backed by Mongo
-func NewStore(opts ...nosql.Option) nosql.Store {
-	options := nosql.Options{}
+// New returns a new store backed by MongoStore
+func New(opts ...Option) Store {
+	options := Options{}
 
 	for _, o := range opts {
 		o(&options)
 	}
 
-	// new store
+	// new
 	s := new(MongoStore)
 	// set the options
 	s.options = options
-	// best-effort configure the store
+	// best-effort configure the
 	if err := s.configure(); err != nil {
-		logger.Error("Error configuring store ", err)
+		logger.Error("Error configuring  ", err)
 	}
 
-	// return store
+	// return
 	return s
 }
 
@@ -101,13 +174,13 @@ func (m *MongoStore) configure() error {
 	ctx := m.options.Context
 
 	if len(m.options.Nodes) == 0 {
-		logger.Errorf("[store] No node supplied")
+		logger.Errorf("[] No node supplied")
 	}
 
 	uri := m.options.Nodes[0]
 
 	if len(m.options.Nodes) > 1 {
-		logger.Warnf("[store] Multiple nodes (%d) supplied", len(m.options.Nodes))
+		logger.Warnf("[] Multiple nodes (%d) supplied", len(m.options.Nodes))
 	}
 
 	mongoOptions := options.Client()
@@ -115,7 +188,7 @@ func (m *MongoStore) configure() error {
 
 	client, err := mongo.Connect(ctx, mongoOptions)
 	if err != nil {
-		logger.Errorf("[store] Cannot connect to the node %s", uri)
+		logger.Errorf("[] Cannot connect to the node %s", uri)
 	}
 
 	m.client = client
@@ -144,21 +217,4 @@ func (m *MongoStore) setup(database string, collection string) *mongo.Collection
 	}
 
 	return coll
-}
-
-func (m *MongoStore) prepare(records []*nosql.Record) ([]interface{}, bool) {
-	var isMany bool
-
-	if isMany = false; len(records) > 1 {
-		isMany = true
-	}
-
-	Records := make([]interface{}, len(records))
-
-	for idx, record := range records {
-		Records[idx] = record.Value
-	}
-
-	return Records, isMany
-
 }
