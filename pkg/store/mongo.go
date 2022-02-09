@@ -5,6 +5,7 @@ import (
 
 	"go-micro.dev/v4/logger"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -199,16 +200,64 @@ func (m *MongoStore) find(q *Query, opts QueryOptions) ([]*Record, error) {
 
 }
 
-func (m *MongoStore) Update(q []*Query, opts ...QueryOption) ([]*Record, error) {
+func (m *MongoStore) Update(q *Query, opts ...QueryOption) (int64, error) {
 	var options QueryOptions
 	for _, o := range opts {
 		o(&options)
 	}
 
-	var records []*Record
+	var count int64
 	var err error
 
-	return records, err
+	type Filter struct {
+		ID primitive.ObjectID `bson:"_id, omitempty"`
+	}
+	var filter Filter
+
+	err = bson.Unmarshal(q.Filter, &filter)
+
+	if err != nil {
+		logger.Errorf("[store] Error Update (db : %s, collection : %s) filter unmarshal", options.Database, options.Collection)
+	}
+
+	if len(filter.ID) == 0 {
+		count, err = m.updateMany(q, options)
+	} else {
+		count, err = m.updateOne(q, options)
+	}
+
+	return count, err
+}
+
+func (m *MongoStore) updateOne(q *Query, opts QueryOptions) (int64, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	result, err := collection.UpdateOne(ctx, q.Filter, q.Doc)
+
+	if err != nil {
+		logger.Errorf("[store] Error updateOne (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+	}
+
+	count := result.ModifiedCount
+
+	return count, err
+}
+
+func (m *MongoStore) updateMany(q *Query, opts QueryOptions) (int64, error) {
+	ctx := m.options.Context
+	collection := m.setup(opts.Database, opts.Collection)
+
+	result, err := collection.UpdateOne(ctx, q.Filter, q.Doc)
+
+	if err != nil {
+		logger.Errorf("[store] Error updateOne (db : %s, collection : %s) filter : %s", opts.Database, opts.Collection, q.Filter)
+	}
+
+	count := result.ModifiedCount
+
+	return count, err
+
 }
 
 func (m *MongoStore) Delete(q *Query, opts ...QueryOption) (int64, error) {

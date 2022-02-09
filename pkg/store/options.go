@@ -2,7 +2,6 @@ package store
 
 import (
 	"context"
-	"time"
 )
 
 // Options contains configuration for the Store
@@ -52,86 +51,39 @@ func WithContext(c context.Context) Option {
 	}
 }
 
-// ReadOptions configures an individual Read operation
-type ReadOptions struct {
-	Database, Collection string
-	// Limit limits the number of returned records
-	Limit uint
-	// Offset when combined with Limit supports pagination
-	Offset uint
-}
-
-// ReadOption sets values in ReadOptions
-type ReadOption func(r *ReadOptions)
-
 // ReadFrom the database and table
-func ReadFrom(database, collection string) ReadOption {
-	return func(r *ReadOptions) {
+func ReadFrom(database, collection string) QueryOption {
+	return func(r *QueryOptions) {
 		r.Database = database
 		r.Collection = collection
 	}
 }
 
 // ReadLimit limits the number of responses to l
-func ReadLimit(l uint) ReadOption {
-	return func(r *ReadOptions) {
+func ReadLimit(l int64) QueryOption {
+	return func(r *QueryOptions) {
 		r.Limit = l
 	}
 }
 
 // ReadOffset starts returning responses from o. Use in conjunction with Limit for pagination
-func ReadOffset(o uint) ReadOption {
-	return func(r *ReadOptions) {
+func ReadOffset(o int64) QueryOption {
+	return func(r *QueryOptions) {
 		r.Offset = o
 	}
 }
 
-// WriteOptions configures an individual Write operation
-// If Expiry and TTL are set TTL takes precedence
-type WriteOptions struct {
-	Database, Collection string
-	// Expiry is the time the record expires
-	Expiry time.Time
-	// TTL is the time until the record expires
-	TTL time.Duration
-}
-
-// WriteOption sets values in WriteOptions
-type WriteOption func(w *WriteOptions)
-
 // WriteTo the database and table
-func WriteTo(database, table string) WriteOption {
-	return func(w *WriteOptions) {
+func WriteTo(database, table string) QueryOption {
+	return func(w *QueryOptions) {
 		w.Database = database
 		w.Collection = table
 	}
 }
 
-// WriteExpiry is the time the record expires
-func WriteExpiry(t time.Time) WriteOption {
-	return func(w *WriteOptions) {
-		w.Expiry = t
-	}
-}
-
-// WriteTTL is the time the record expires
-func WriteTTL(d time.Duration) WriteOption {
-	return func(w *WriteOptions) {
-		w.TTL = d
-	}
-}
-
-// DeleteOptions configures an individual Delete operation
-type DeleteOptions struct {
-	Database, Collection string
-}
-
-// DeleteOption sets values in DeleteOptions
-type DeleteOption func(d *DeleteOptions)
-
 // DeleteFrom the database and table
-func DeleteFrom(database, collection string) DeleteOption {
-	return func(d *DeleteOptions) {
+func DeleteFrom(database, collection string) QueryOption {
+	return func(d *QueryOptions) {
 		d.Database = database
 		d.Collection = collection
 	}

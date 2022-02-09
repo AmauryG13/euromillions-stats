@@ -21,7 +21,7 @@ type Store interface {
 	// Read find one query from the store. It returns an array of records and a possible error
 	Read(q *Query, opts ...QueryOption) ([]*Record, error)
 	// Update write changes of one (or multiple) query(ies) and return an error if updating fails.
-	Update(q []*Query, opts ...QueryOption) ([]*Record, error)
+	Update(q *Query, opts ...QueryOption) (int64, error)
 	// Delete removes the record with the corresponding key from the store.
 	Delete(q *Query, opts ...QueryOption) (int64, error)
 	// Close the store
