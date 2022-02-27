@@ -37,7 +37,9 @@ func NewDrawsServiceEndpoints() []*api.Endpoint {
 // Client API for DrawsService service
 
 type DrawsService interface {
-	GetDraw(ctx context.Context, in *GetDrawRequest, opts ...client.CallOption) (*Draw, error)
+	GetDraw(ctx context.Context, in *GetDrawRequest, opts ...client.CallOption) (*GetDrawResponse, error)
+	AddDraw(ctx context.Context, in *AddDrawRequest, opts ...client.CallOption) (*AddDrawResponse, error)
+	ListDraw(ctx context.Context, in *ListDrawRequest, opts ...client.CallOption) (*ListDrawResponse, error)
 }
 
 type drawsService struct {
@@ -52,9 +54,29 @@ func NewDrawsService(name string, c client.Client) DrawsService {
 	}
 }
 
-func (c *drawsService) GetDraw(ctx context.Context, in *GetDrawRequest, opts ...client.CallOption) (*Draw, error) {
+func (c *drawsService) GetDraw(ctx context.Context, in *GetDrawRequest, opts ...client.CallOption) (*GetDrawResponse, error) {
 	req := c.c.NewRequest(c.name, "DrawsService.GetDraw", in)
-	out := new(Draw)
+	out := new(GetDrawResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawsService) AddDraw(ctx context.Context, in *AddDrawRequest, opts ...client.CallOption) (*AddDrawResponse, error) {
+	req := c.c.NewRequest(c.name, "DrawsService.AddDraw", in)
+	out := new(AddDrawResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *drawsService) ListDraw(ctx context.Context, in *ListDrawRequest, opts ...client.CallOption) (*ListDrawResponse, error) {
+	req := c.c.NewRequest(c.name, "DrawsService.ListDraw", in)
+	out := new(ListDrawResponse)
 	err := c.c.Call(ctx, req, out, opts...)
 	if err != nil {
 		return nil, err
@@ -65,12 +87,16 @@ func (c *drawsService) GetDraw(ctx context.Context, in *GetDrawRequest, opts ...
 // Server API for DrawsService service
 
 type DrawsServiceHandler interface {
-	GetDraw(context.Context, *GetDrawRequest, *Draw) error
+	GetDraw(context.Context, *GetDrawRequest, *GetDrawResponse) error
+	AddDraw(context.Context, *AddDrawRequest, *AddDrawResponse) error
+	ListDraw(context.Context, *ListDrawRequest, *ListDrawResponse) error
 }
 
 func RegisterDrawsServiceHandler(s server.Server, hdlr DrawsServiceHandler, opts ...server.HandlerOption) error {
 	type drawsService interface {
-		GetDraw(ctx context.Context, in *GetDrawRequest, out *Draw) error
+		GetDraw(ctx context.Context, in *GetDrawRequest, out *GetDrawResponse) error
+		AddDraw(ctx context.Context, in *AddDrawRequest, out *AddDrawResponse) error
+		ListDraw(ctx context.Context, in *ListDrawRequest, out *ListDrawResponse) error
 	}
 	type DrawsService struct {
 		drawsService
@@ -83,6 +109,14 @@ type drawsServiceHandler struct {
 	DrawsServiceHandler
 }
 
-func (h *drawsServiceHandler) GetDraw(ctx context.Context, in *GetDrawRequest, out *Draw) error {
+func (h *drawsServiceHandler) GetDraw(ctx context.Context, in *GetDrawRequest, out *GetDrawResponse) error {
 	return h.DrawsServiceHandler.GetDraw(ctx, in, out)
+}
+
+func (h *drawsServiceHandler) AddDraw(ctx context.Context, in *AddDrawRequest, out *AddDrawResponse) error {
+	return h.DrawsServiceHandler.AddDraw(ctx, in, out)
+}
+
+func (h *drawsServiceHandler) ListDraw(ctx context.Context, in *ListDrawRequest, out *ListDrawResponse) error {
+	return h.DrawsServiceHandler.ListDraw(ctx, in, out)
 }
