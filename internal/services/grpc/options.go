@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	"github.com/amauryg13/ems/pkg/log"
+	"github.com/amauryg13/ems/internal/log"
 
 	"github.com/urfave/cli/v2"
 )

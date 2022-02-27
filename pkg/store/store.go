@@ -2,7 +2,6 @@ package store
 
 import (
 	"errors"
-	"time"
 )
 
 var (
@@ -16,53 +15,26 @@ type Store interface {
 	Init(...Option) error
 	// Options allows you to view the current options.
 	Options() Options
-	// Create writes one (or multiple) query(s) to the store and return an error if creating fails.
-	Create(q []*Query, opts ...QueryOption) ([]*Record, error)
-	// Read find one query from the store. It returns an array of records and a possible error
-	Read(q *Query, opts ...QueryOption) ([]*Record, error)
-	// Update write changes of one (or multiple) query(ies) and return an error if updating fails.
-	Update(q *Query, opts ...QueryOption) (int64, error)
-	// Delete removes the record with the corresponding key from the store.
-	Delete(q *Query, opts ...QueryOption) (int64, error)
+	// Create write a data interface and returns a Result
+	Create(value interface{}, opts ...CreateOption) (*Result, error)
+	// Read takes a filter and optional ReadOptions. It returns matching *Record or an error.
+	Read(filter interface{}, opts ...ReadOption) (*Result, error)
+	// Update write the changes to the filtered data, and returns an error if the record was not written.
+	Update(filter interface{}, changes interface{}, opts ...UpdateOption) (*Result, error)
+	// Delete removes the filtered record
+	Delete(filter interface{}, opts ...DeleteOption) (*Result, error)
 	// Close the store
 	Close() error
 	// String returns the name of the implementation.
 	String() string
 }
 
-// QueryOptions is an optional option to the query
-type QueryOptions struct {
-	Database, Collection string
-	// Fields lists the fields that needs to be included in the record
-	Fields []byte
-	// Limit limits the number of returned records
-	Limit int64
-	// Offset when combined with Limit supports pagination
-	Offset int64
-	// Sort sorts the retured records
-	Sort []byte
-}
+// Results
+type Result struct {
+	// Results of Create, Read, Update, Delete operation
+	IDs          []interface{}
+	AffectedRows int
 
-type QueryOption func(o *QueryOptions)
-
-// Query is an item passed to a Store in order to be stored
-type Query struct {
-	// The filter to query
-	Filter []byte `json:"filter"`
-	// The document to query
-	Doc []byte `json:"doc"`
-	// The additional options to the query
-	Options QueryOptions
-}
-
-// Record is an item stored or retrieved from a Store
-type Record struct {
-	// The key to store the record
-	Key string `json:"key"`
-	// The value within the record
-	Value []byte `json:"value"`
-	// Any associated metadata for indexing
-	Metadata map[string]interface{} `json:"metadata"`
-	// Time to expire a record: TODO: change to timestamp
-	Expiry time.Duration `json:"expiry,omitempty"`
+	// Field added for the Read operation
+	Data []interface{}
 }

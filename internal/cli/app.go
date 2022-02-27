@@ -1,7 +1,7 @@
 package emsCli
 
 import (
-	"github.com/amauryg13/ems/pkg/version"
+	"github.com/amauryg13/ems/internal/version"
 	"github.com/urfave/cli/v2"
 )
 

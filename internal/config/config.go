@@ -18,20 +18,19 @@ type Config struct {
 	Store   *Store
 }
 
-func (c Config) Read(path string) *Config {
-	var config Config
+func (c Config) Read(path string) error {
 
 	if err := mCfg.Load(mCfgFile.NewSource(
 		mCfgFile.WithPath(path),
 	)); err != nil {
 		fmt.Println(err)
-		return &config
+		return err
 	}
 
-	if err := mCfg.Get().Scan(&config); err != nil {
+	if err := mCfg.Get().Scan(&c); err != nil {
 		fmt.Println(err)
-		return &config
+		return err
 	}
 
-	return &config
+	return nil
 }
