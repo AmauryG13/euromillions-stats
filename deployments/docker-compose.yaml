@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  draws:
+    hostname: ems-draws
+    build: 
+      context: ..
+      dockerfile: ./build/images/Dockerfile.draws
+    volumes:
+      - ../configs/draws.json:/etc/ems/draws.json
+    ports:
+      - 9001:9001
+    depends_on:
+      - db
+  db:
+    hostname: mongodb
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ems-user
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: draws
+    ports:
+      - 27017:27017
