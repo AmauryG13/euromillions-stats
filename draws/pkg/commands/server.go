@@ -7,8 +7,9 @@ import (
 	grpc "github.com/amauryg13/ems/draws/pkg/server"
 	"github.com/amauryg13/ems/draws/pkg/service"
 
-	"github.com/amauryg13/ems/pkg/config"
-	"github.com/amauryg13/ems/pkg/log"
+	drawsCfg "github.com/amauryg13/ems/draws/pkg/config"
+	"github.com/amauryg13/ems/internal/config"
+	"github.com/amauryg13/ems/internal/log"
 	"github.com/oklog/run"
 	"github.com/urfave/cli/v2"
 )
@@ -18,6 +19,9 @@ func Server(cfg *config.Config) *cli.Command {
 		Name:     "server",
 		Usage:    fmt.Sprintf("start %s server", cfg.Service.Name),
 		Category: "draws",
+		Before: func(c *cli.Context) error {
+			return cfg.Read(drawsCfg.ConfigPath)
+		},
 		Action: func(c *cli.Context) error {
 			logger := log.NewLogger(
 				log.Name(cfg.Service.Name),
@@ -48,7 +52,7 @@ func Server(cfg *config.Config) *cli.Command {
 			)
 
 			gr.Add(grpcServer.Run, func(_ error) {
-				logger.Infof("Command [%s] Shutting down server")
+				logger.Infof("Stopping [command] %s server", cfg.Service.Name)
 				cancel()
 			})
 
