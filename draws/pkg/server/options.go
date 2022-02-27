@@ -4,8 +4,8 @@ import (
 	"context"
 
 	svc "github.com/amauryg13/ems/draws/pkg/service"
-	"github.com/amauryg13/ems/pkg/config"
-	"github.com/amauryg13/ems/pkg/log"
+	"github.com/amauryg13/ems/internal/config"
+	"github.com/amauryg13/ems/internal/log"
 	"github.com/urfave/cli/v2"
 )
 

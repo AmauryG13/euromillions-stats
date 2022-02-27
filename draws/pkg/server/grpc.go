@@ -2,7 +2,7 @@ package grpc
 
 import (
 	proto "github.com/amauryg13/ems/draws/pkg/proto"
-	"github.com/amauryg13/ems/pkg/services/grpc"
+	"github.com/amauryg13/ems/internal/services/grpc"
 )
 
 func Server(opts ...Option) grpc.Service {
