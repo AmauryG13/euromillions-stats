@@ -41,7 +41,7 @@ func (m *mongoStore) Create(value interface{}, opts ...store.CreateOption) (*sto
 	doc, err := bson.Marshal(value)
 
 	if err != nil {
-		logger.Error("[Store] Create() Bson marshal error", err)
+		logger.Error("[Store] Create() Bson marshal error : ", err)
 		return &result, err
 	}
 
@@ -59,7 +59,7 @@ func (m *mongoStore) insertOne(collection *mongo.Collection, ctx context.Context
 	result, err := collection.InsertOne(ctx, doc)
 
 	if err != nil {
-		logger.Error("[store] Error insertOne", err)
+		logger.Error("[store] insertOne error : ", err)
 		return &mongo.InsertOneResult{}, nil
 	}
 
@@ -77,7 +77,7 @@ func (m *mongoStore) Read(filter interface{}, opts ...store.ReadOption) (*store.
 	ctx := m.options.Context
 	collection := m.prepare(options.Database, options.Collection)
 
-	var results []bson.M
+	var results []bson.D
 	var err error
 
 	if options.Limit == 1 {
@@ -87,7 +87,7 @@ func (m *mongoStore) Read(filter interface{}, opts ...store.ReadOption) (*store.
 	}
 
 	if err != nil {
-		logger.Error("[store] Read() error", err)
+		logger.Error("[store] Read() error :", err)
 		return &res, err
 	}
 
@@ -99,27 +99,29 @@ func (m *mongoStore) Read(filter interface{}, opts ...store.ReadOption) (*store.
 	return &res, nil
 }
 
-func (m *mongoStore) findOne(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.M, error) {
+func (m *mongoStore) findOne(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.D, error) {
 	options := options.FindOne()
 
 	if len(opts.Fields) != 0 {
 		options.SetProjection(opts.Fields)
 	}
 
-	var result []bson.M
+	var result bson.D
+	var results []bson.D
 
 	err := col.FindOne(ctx, filter, options).Decode(&result)
 
 	if err != nil {
-		logger.Errorf("[store] Error findOne", err)
-		return result, err
+		logger.Error("[store] findOne error : ", err)
+		return results, err
 	}
 
-	return result, nil
+	results[0] = result
+	return results, nil
 
 }
 
-func (m *mongoStore) find(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.M, error) {
+func (m *mongoStore) find(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.D, error) {
 	options := options.Find()
 
 	options.SetLimit(opts.Limit)
@@ -133,7 +135,7 @@ func (m *mongoStore) find(col *mongo.Collection, ctx context.Context, filter int
 		options.SetSort(opts.Sort)
 	}
 
-	var results []bson.M
+	var results []bson.D
 
 	cursor, err := col.Find(ctx, filter, options)
 
@@ -145,7 +147,7 @@ func (m *mongoStore) find(col *mongo.Collection, ctx context.Context, filter int
 	defer cursor.Close(ctx)
 
 	for cursor.Next(ctx) {
-		var result bson.M
+		var result bson.D
 
 		if err := cursor.Decode(&result); err != nil {
 			logger.Error("[store] Error decoding cursor", err)
@@ -327,7 +329,7 @@ func (m *mongoStore) prepare(database string, collection string) *mongo.Collecti
 	return coll
 }
 
-func (m *mongoStore) decodeToSchema(doc bson.M, schema interface{}) interface{} {
+func (m *mongoStore) decodeToSchema(doc bson.D, schema interface{}) interface{} {
 	docBytes, err := bson.Marshal(doc)
 
 	if err != nil {
