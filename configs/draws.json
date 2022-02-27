@@ -1,0 +1,19 @@
+{
+  "service": {
+    "name": "draws"
+  },
+  "grpc": {
+    "namespace": "fr.amauryg13.ems",
+    "address": "localhost:9001"
+  },
+  "log": {
+    "level": "debug"
+  },
+  "store": {
+    "nodes": [
+      "mongodb://ems-user:password@mongodb:27017"
+    ],
+    "Database": "ems",
+    "Table": "draws"
+  }
+}
