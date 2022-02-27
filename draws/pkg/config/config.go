@@ -1,10 +1,8 @@
 package config
 
-import "github.com/amauryg13/ems/pkg/config"
+import "github.com/amauryg13/ems/internal/config"
 
-var (
-	path = "./settings.json"
-)
+const ConfigPath string = "/etc/ems/draws.json"
 
 func DefaultConfig() *config.Config {
 	return &config.Config{
@@ -12,11 +10,16 @@ func DefaultConfig() *config.Config {
 			Name: "draws",
 		},
 		GRPC: &config.GRPC{
-			Address:   "127.0.0.1:9010",
+			Address:   "localhost:9001",
 			Namespace: "fr.amauryg13.ems",
 		},
 		Log: &config.Log{
 			Level: "info",
+		},
+		Store: &config.Store{
+			Nodes:    []string{"mongodb://ems-user:password@localhost:27017"},
+			Database: "ems",
+			Table:    "draws",
 		},
 	}
 }

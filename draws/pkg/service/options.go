@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/amauryg13/ems/pkg/config"
-	"github.com/amauryg13/ems/pkg/log"
+	"github.com/amauryg13/ems/internal/config"
+	"github.com/amauryg13/ems/internal/log"
 )
 
 type Option func(o *Options)
