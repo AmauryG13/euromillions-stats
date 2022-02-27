@@ -33,7 +33,7 @@ type Store interface {
 type Result struct {
 	// Results of Create, Read, Update, Delete operation
 	IDs          []interface{}
-	AffectedRows int
+	AffectedRows int64
 
 	// Field added for the Read operation
 	Data []interface{}

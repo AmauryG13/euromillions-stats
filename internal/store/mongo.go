@@ -99,7 +99,7 @@ func (m *mongoStore) Read(filter interface{}, opts ...store.ReadOption) (*store.
 	return &res, nil
 }
 
-func (m *mongoStore) findOne(collection *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.M, error) {
+func (m *mongoStore) findOne(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.M, error) {
 	options := options.FindOne()
 
 	if len(opts.Fields) != 0 {
@@ -108,7 +108,7 @@ func (m *mongoStore) findOne(collection *mongo.Collection, ctx context.Context, 
 
 	var result []bson.M
 
-	err := collection.FindOne(ctx, filter, options).Decode(&result)
+	err := col.FindOne(ctx, filter, options).Decode(&result)
 
 	if err != nil {
 		logger.Errorf("[store] Error findOne", err)
@@ -119,7 +119,7 @@ func (m *mongoStore) findOne(collection *mongo.Collection, ctx context.Context, 
 
 }
 
-func (m *mongoStore) find(collection *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.M, error) {
+func (m *mongoStore) find(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.ReadOptions) ([]bson.M, error) {
 	options := options.Find()
 
 	options.SetLimit(opts.Limit)
@@ -135,7 +135,7 @@ func (m *mongoStore) find(collection *mongo.Collection, ctx context.Context, fil
 
 	var results []bson.M
 
-	cursor, err := collection.Find(ctx, filter, options)
+	cursor, err := col.Find(ctx, filter, options)
 
 	if err != nil {
 		logger.Error("[store] Error getting cursor", err)
@@ -165,13 +165,71 @@ func (m *mongoStore) find(collection *mongo.Collection, ctx context.Context, fil
 }
 
 func (m *mongoStore) Update(filter interface{}, changes interface{}, opts ...store.UpdateOption) (*store.Result, error) {
-	var res store.Result
-	return &res, nil
+	var options store.UpdateOptions
+	for _, o := range opts {
+		o(&options)
+	}
+	var result store.Result
+
+	ctx := m.options.Context
+	collection := m.prepare(options.Database, options.Collection)
+
+	res, err := m.updateOne(collection, ctx, filter, changes, options)
+
+	if err != nil {
+		logger.Error("[store] Update() error", err)
+	}
+
+	result.AffectedRows = res.ModifiedCount
+
+	return &result, nil
+}
+
+func (m *mongoStore) updateOne(col *mongo.Collection, ctx context.Context, filter interface{}, doc interface{}, opts store.UpdateOptions) (*mongo.UpdateResult, error) {
+
+	result, err := col.UpdateOne(ctx, filter, doc)
+
+	if err != nil {
+		logger.Errorf("[store] Error updateOne", err)
+		return &mongo.UpdateResult{}, err
+	}
+
+	return result, err
 }
 
 func (m *mongoStore) Delete(filter interface{}, opts ...store.DeleteOption) (*store.Result, error) {
-	var res store.Result
-	return &res, nil
+	var options store.DeleteOptions
+	for _, o := range opts {
+		o(&options)
+	}
+	var result store.Result
+
+	ctx := m.options.Context
+	collection := m.prepare(options.Database, options.Collection)
+
+	res, err := m.deleteOne(collection, ctx, filter, options)
+
+	if err != nil {
+		logger.Error("[store] Delete() error", err)
+		return &result, err
+	}
+
+	result.AffectedRows = res.DeletedCount
+
+	return &result, nil
+}
+
+func (m *mongoStore) deleteOne(col *mongo.Collection, ctx context.Context, filter interface{}, opts store.DeleteOptions) (*mongo.DeleteResult, error) {
+
+	options := options.Delete().SetHint(bson.D{{"_id", 1}})
+
+	result, err := col.DeleteOne(ctx, filter, options)
+
+	if err != nil {
+		logger.Error("[store] Error deleteOne", err)
+	}
+
+	return result, err
 }
 
 func (m *mongoStore) Close() error {
@@ -200,9 +258,9 @@ func NewStore(opts ...store.Option) store.Store {
 	s := new(mongoStore)
 	// set the options
 	s.options = options
-	// best-effort configure the
+
 	if err := s.configure(); err != nil {
-		logger.Error("Error configuring the store server", err)
+		logger.Error("[store] Error configuring the store server", err)
 	}
 
 	// return
@@ -237,7 +295,7 @@ func (m *mongoStore) configure() error {
 	err = client.Ping(ctx, nil)
 
 	if err != nil {
-		logger.Error("[Store] Cannot ping the server")
+		logger.Error("[store] Cannot ping the server")
 		return err
 	}
 
