@@ -1,11 +1,5 @@
 GOPATH:=$(shell go env GOPATH)
 
-.PHONY: init
-init:
-	@go get -u google.golang.org/protobuf/proto
-	@go install github.com/golang/protobuf/protoc-gen-go@latest
-	@go install github.com/asim/go-micro/cmd/protoc-gen-micro/v4@latest
-
 .PHONY: proto
 proto:
 	@protoc --proto_path=. --micro_out=pkg/proto --go_out=pkg/proto proto/draws.proto
@@ -20,7 +14,7 @@ tidy:
 
 .PHONY: build
 build:
-	@go build -o draws *.go
+	@go build -o draws cmd/draws/main.go
 
 .PHONY: test
 test:
@@ -28,4 +22,4 @@ test:
 
 .PHONY: docker
 docker:
-	@docker build -t {{.Service}}{{if .Client}}-client{{end}}:latest .
+	@docker build -f ../build/images/Dockerfile.draws -t amauryg13/ems-draws:latest ..
