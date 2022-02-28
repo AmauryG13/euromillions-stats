@@ -11,15 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *proto.GetDrawResponse) (err error) {
-	logger.Infof("Service [%s] GetDraw() arg : %s", s.id, req.GetUuid())
+func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *proto.GetDrawResponse) error {
+	logger.Infof("Service [%s] GetDraw() arg : %d", s.id, req.GetUuid())
 
 	searchDraw := bson.D{{"uuid", req.GetUuid()}}
 
 	searchResult, err := s.Store.Read(
 		searchDraw,
 		store.ReadFirst(),
-		store.ReadSchema(drawsStore.Draw{}),
 	)
 
 	if err != nil {
@@ -27,7 +26,15 @@ func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *pr
 		return err
 	}
 
-	fmt.Println(searchResult.Data)
+	var foundDraw drawsStore.Draw
+	found := searchResult.Data[0]
+
+	fBytes, _ := bson.Marshal(found)
+	_ = bson.Unmarshal(fBytes, &foundDraw)
+
+	rep.Draw = &proto.Draw{
+		Uuid: foundDraw.Uuid,
+	}
 
 	return nil
 }
@@ -41,7 +48,6 @@ func (s Service) ListDraw(ctx context.Context, req *proto.ListDrawRequest, rep *
 
 	searchResult, err := s.Store.Read(
 		searchDraw,
-		store.ReadSchema(drawsStore.Draw{}),
 	)
 
 	if err != nil {
