@@ -2,8 +2,6 @@ package store
 
 import (
 	"context"
-
-	"go-micro.dev/v4/client"
 )
 
 // Options contains configuration for the Store
@@ -18,8 +16,6 @@ type Options struct {
 	Collection string
 	// Context should contain all implementation specific options, using context.WithValue.
 	Context context.Context
-	// Client to use for RPC
-	Client client.Client
 }
 
 // Option sets values in Options
