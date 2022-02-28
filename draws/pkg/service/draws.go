@@ -9,6 +9,8 @@ import (
 	"github.com/amauryg13/ems/pkg/store"
 	"go-micro.dev/v4/logger"
 	"go.mongodb.org/mongo-driver/bson"
+
+	"github.com/jinzhu/copier"
 )
 
 func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *proto.GetDrawResponse) error {
@@ -22,7 +24,7 @@ func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *pr
 	)
 
 	if err != nil {
-		logger.Errorf("Service [%s] GetDraw() error", s.id, err)
+		logger.Errorf("Service [%s] GetDraw() error searching draw : %s", s.id, err)
 		return err
 	}
 
@@ -32,10 +34,13 @@ func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *pr
 	fBytes, _ := bson.Marshal(found)
 	_ = bson.Unmarshal(fBytes, &foundDraw)
 
-	rep.Draw = &proto.Draw{
-		Uuid: foundDraw.Uuid,
+	var protoDraw proto.Draw
+
+	if err := copier.Copy(&protoDraw, foundDraw); err != nil {
+		logger.Errorf("Service [%s] GetDraw() error merging draw : %s", s.id, err)
 	}
 
+	rep.Draw = &protoDraw
 	return nil
 }
 
