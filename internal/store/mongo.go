@@ -92,8 +92,7 @@ func (m *mongoStore) Read(filter interface{}, opts ...store.ReadOption) (*store.
 	}
 
 	for _, result := range results {
-		schemaRes := m.decodeToSchema(result, options.Schema)
-		res.Data = append(res.Data, schemaRes)
+		res.Data = append(res.Data, result)
 	}
 
 	return &res, nil
@@ -116,7 +115,7 @@ func (m *mongoStore) findOne(col *mongo.Collection, ctx context.Context, filter 
 		return results, err
 	}
 
-	results[0] = result
+	results = append(results, result)
 	return results, nil
 
 }
@@ -327,22 +326,4 @@ func (m *mongoStore) prepare(database string, collection string) *mongo.Collecti
 	}
 
 	return coll
-}
-
-func (m *mongoStore) decodeToSchema(doc bson.D, schema interface{}) interface{} {
-	docBytes, err := bson.Marshal(doc)
-
-	if err != nil {
-		logger.Error("[store] decodeToSchema : bson Marshal", err)
-		return schema
-	}
-
-	err = bson.Unmarshal(docBytes, &schema)
-
-	if err != nil {
-		logger.Error("[store] decodeToSchema : bson Unmarshal", err)
-	}
-
-	return schema
-
 }

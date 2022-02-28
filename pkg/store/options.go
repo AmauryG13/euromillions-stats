@@ -76,8 +76,6 @@ type ReadOptions struct {
 	Offset int64
 	// Sort helps sorting the data
 	Sort []byte
-	// Schema is an interface how to render the read data
-	Schema interface{}
 }
 
 // ReadOption sets values in ReadOptions
@@ -121,12 +119,6 @@ func ReadFirst() ReadOption {
 func ReadSort(s []byte) ReadOption {
 	return func(r *ReadOptions) {
 		r.Sort = s
-	}
-}
-
-func ReadSchema(s interface{}) ReadOption {
-	return func(r *ReadOptions) {
-		r.Schema = s
 	}
 }
 
