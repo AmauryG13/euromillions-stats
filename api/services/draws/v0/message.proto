@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package draws.message.v0;
+
+option go_package = "api/services/draws/v0";
+
+import "google/protobuf/timestamp.proto";
+
+message Draw {
+	int64 uuid = 1;
+	int64 number = 2;
+	enum Day {
+		THURSDAY = 0;
+		FRIDAY = 1;
+	}
+	Day day = 3;
+	int32 cycle = 4;
+	google.protobuf.Timestamp forclusion = 5;
+}
