@@ -2,9 +2,7 @@ version: "3.9"
 services:
   draws:
     hostname: ems-draws
-    build: 
-      context: ..
-      dockerfile: ./build/images/Dockerfile.draws
+    image: amauryg13/ems-draws:latest
     volumes:
       - ../configs/draws.json:/etc/ems/draws.json
     ports:
