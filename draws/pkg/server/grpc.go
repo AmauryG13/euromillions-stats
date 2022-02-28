@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	proto "github.com/amauryg13/ems/draws/pkg/proto"
+	v0 "github.com/amauryg13/ems/api/services/draws/v0"
 	"github.com/amauryg13/ems/internal/services/grpc"
 )
 
@@ -19,7 +19,7 @@ func Server(opts ...Option) grpc.Service {
 		grpc.Flags(options.Flags...),
 	)
 
-	if err := proto.RegisterDrawsServiceHandler(service.Server(), handler); err != nil {
+	if err := v0.RegisterDrawsServiceHandler(service.Server(), handler); err != nil {
 		logger.Fatal("Service handler registration failed")
 	}
 

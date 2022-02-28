@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	drawsProto "github.com/amauryg13/ems/draws/pkg/proto"
+	draws "github.com/amauryg13/ems/api/services/draws/v0"
 	"github.com/amauryg13/ems/internal/config"
 	"github.com/amauryg13/ems/internal/log"
 	"github.com/asim/go-micro/plugins/client/grpc/v4"
@@ -31,9 +31,9 @@ func InspectDraw(cfg *config.Config) *cli.Command {
 			logger.Infof("Starting [command] %s %s", cfg.Service.Name, c.Command.Name)
 
 			drawsSrvID := cfg.GRPC.Namespace + "." + cfg.Service.Name
-			drawsSrv := drawsProto.NewDrawsService(drawsSrvID, grpc.NewClient())
+			drawsSrv := draws.NewDrawsService(drawsSrvID, grpc.NewClient())
 
-			req := drawsProto.GetDrawRequest{
+			req := draws.GetDrawRequest{
 				Uuid: c.Int64("uuid"),
 			}
 

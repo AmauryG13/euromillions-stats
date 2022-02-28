@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	drawsSrv "github.com/amauryg13/ems/draws/pkg/proto"
+	drawsSrv "github.com/amauryg13/ems/api/services/draws/v0"
 )
 
 func AddDraw(cfg *config.Config) *cli.Command {

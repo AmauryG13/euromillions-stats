@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/amauryg13/ems/draws/pkg/proto"
+	v0 "github.com/amauryg13/ems/api/services/draws/v0"
 	drawsStore "github.com/amauryg13/ems/draws/pkg/store"
 	"github.com/amauryg13/ems/pkg/store"
 	"go-micro.dev/v4/logger"
@@ -13,7 +13,7 @@ import (
 	"github.com/jinzhu/copier"
 )
 
-func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *proto.GetDrawResponse) error {
+func (s Service) GetDraw(ctx context.Context, req *v0.GetDrawRequest, rep *v0.GetDrawResponse) error {
 	logger.Infof("Service [%s] GetDraw() arg : %d", s.id, req.GetUuid())
 
 	searchDraw := bson.D{{"uuid", req.GetUuid()}}
@@ -34,7 +34,7 @@ func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *pr
 	fBytes, _ := bson.Marshal(found)
 	_ = bson.Unmarshal(fBytes, &foundDraw)
 
-	var protoDraw proto.Draw
+	var protoDraw v0.Draw
 
 	if err := copier.Copy(&protoDraw, foundDraw); err != nil {
 		logger.Errorf("Service [%s] GetDraw() error merging draw : %s", s.id, err)
@@ -44,11 +44,11 @@ func (s Service) GetDraw(ctx context.Context, req *proto.GetDrawRequest, rep *pr
 	return nil
 }
 
-func (s Service) AddDraw(ctx context.Context, req *proto.AddDrawRequest, rep *proto.AddDrawResponse) (err error) {
+func (s Service) AddDraw(ctx context.Context, req *v0.AddDrawRequest, rep *v0.AddDrawResponse) error {
 	return nil
 }
 
-func (s Service) ListDraw(ctx context.Context, req *proto.ListDrawRequest, rep *proto.ListDrawResponse) (err error) {
+func (s Service) ListDraw(ctx context.Context, req *v0.ListDrawRequest, rep *v0.ListDrawResponse) error {
 	searchDraw := bson.D{}
 
 	searchResult, err := s.Store.Read(

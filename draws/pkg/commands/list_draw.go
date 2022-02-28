@@ -9,7 +9,7 @@ import (
 	"github.com/asim/go-micro/plugins/client/grpc/v4"
 	"github.com/urfave/cli/v2"
 
-	drawsSrv "github.com/amauryg13/ems/draws/pkg/proto"
+	drawsSrv "github.com/amauryg13/ems/api/services/draws/v0"
 )
 
 func ListDraw(cfg *config.Config) *cli.Command {
@@ -34,7 +34,7 @@ func ListDraw(cfg *config.Config) *cli.Command {
 			srv := drawsSrv.NewDrawsService(srvID, grpc.NewClient())
 
 			_, err := srv.ListDraw(ctx, &drawsSrv.ListDrawRequest{
-				PageSize: 1,
+				PageLimit: 50,
 			})
 
 			if err != nil {
