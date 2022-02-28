@@ -18,7 +18,7 @@ func InspectDraw(cfg *config.Config) *cli.Command {
 		Usage:    fmt.Sprintf("inspect a %s", cfg.Service.Name),
 		Category: "draws",
 		Flags: []cli.Flag{
-			&cli.StringFlag{Name: "uuid", Aliases: []string{"id"}, Required: true},
+			&cli.Int64Flag{Name: "uuid", Aliases: []string{"id"}, Required: true},
 		},
 		Action: func(c *cli.Context) error {
 			ctx := context.Background()
@@ -34,7 +34,7 @@ func InspectDraw(cfg *config.Config) *cli.Command {
 			drawsSrv := drawsProto.NewDrawsService(drawsSrvID, grpc.NewClient())
 
 			req := drawsProto.GetDrawRequest{
-				Uuid: c.String("uuid"),
+				Uuid: c.Int64("uuid"),
 			}
 
 			res, err := drawsSrv.GetDraw(ctx, &req)
