@@ -25,4 +25,4 @@ RUN mkdir /app
 WORKDIR /app
 COPY --from=builder /app/${MODULE}/ems-${MODULE} .
 
-CMD ["./ems-draws", "server"]
+CMD ["./ems-${MODULE}", "server"]
