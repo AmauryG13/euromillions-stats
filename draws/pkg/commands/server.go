@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	grpc "github.com/amauryg13/ems/draws/pkg/server"
-	"github.com/amauryg13/ems/draws/pkg/service"
+	service "github.com/amauryg13/ems/draws/pkg/service/v0"
 
 	drawsCfg "github.com/amauryg13/ems/draws/pkg/config"
 	"github.com/amauryg13/ems/internal/config"

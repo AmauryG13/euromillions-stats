@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 
-	svc "github.com/amauryg13/ems/draws/pkg/service"
+	svc "github.com/amauryg13/ems/draws/pkg/service/v0"
 	"github.com/amauryg13/ems/internal/config"
 	"github.com/amauryg13/ems/internal/log"
 	"github.com/urfave/cli/v2"

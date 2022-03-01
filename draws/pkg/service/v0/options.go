@@ -1,4 +1,4 @@
-package service
+package v0
 
 import (
 	"github.com/amauryg13/ems/internal/config"
