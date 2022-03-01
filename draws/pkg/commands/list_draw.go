@@ -9,7 +9,7 @@ import (
 	"github.com/asim/go-micro/plugins/client/grpc/v4"
 	"github.com/urfave/cli/v2"
 
-	drawsSrv "github.com/amauryg13/ems/api/services/draws/v0"
+	drawsSrv "github.com/amauryg13/ems/api/draws/v0"
 )
 
 func ListDraw(cfg *config.Config) *cli.Command {

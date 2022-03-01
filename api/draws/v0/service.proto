@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package draws.service.v0;
 
-option go_package = "api/services/draws/v0";
+option go_package = "api/draws/v0";
 
-import "api/services/draws/v0/message.proto";
+import "api/draws/v0/message.proto";
 
 service DrawsService {
 	rpc GetDraw(GetDrawRequest) returns (GetDrawResponse) {}

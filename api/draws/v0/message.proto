@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package draws.message.v0;
 
-option go_package = "api/services/draws/v0";
+option go_package = "api/draws/v0";
 
 import "google/protobuf/timestamp.proto";
 

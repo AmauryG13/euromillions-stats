@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	draws "github.com/amauryg13/ems/api/services/draws/v0"
+	draws "github.com/amauryg13/ems/api/draws/v0"
 	"github.com/amauryg13/ems/internal/config"
 	"github.com/amauryg13/ems/internal/log"
 	"github.com/asim/go-micro/plugins/client/grpc/v4"

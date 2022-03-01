@@ -1,7 +1,7 @@
 package grpc
 
 import (
-	v0 "github.com/amauryg13/ems/api/services/draws/v0"
+	v0 "github.com/amauryg13/ems/api/draws/v0"
 	"github.com/amauryg13/ems/internal/services/grpc"
 )
 
